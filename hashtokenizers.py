@@ -1,5 +1,8 @@
 import hashlib
 from tokenizers import Tokenizer
+import jump
+
+jump.hash(8943209498204811, 2022)
 
 _hashed_id_cache = {}
 _reverse_cache = {}
@@ -24,10 +27,15 @@ def _build_maps(self):
     for tok in sorted(self.get_vocab()):
         if tok in id_map:                 # skip specials
             continue
-        h = int(hashlib.md5(tok.encode()).hexdigest(), 16) % mod
+        h = int(hashlib.md5(tok.encode()).hexdigest(), 16)
+        h = jump.hash(h, mod)
         # avoid special range only
+
+        noise = 0
         while h < R:                      # probe until >= R
-            h = (h + 1) % mod
+            noise += 1
+            h = int(hashlib.md5(f"{tok}{noise}".encode()).hexdigest(), 16)
+            h = jump.hash(h, mod)
         id_map[tok] = h                  # collisions with other normals allowed
 
     self._id_map  = id_map
