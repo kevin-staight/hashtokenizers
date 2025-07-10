@@ -47,18 +47,27 @@ def get_hashed_ids(self):
     return self._id_map
 
 class HashedEncoding:
-    def __init__(self, ids): 
+    def __init__(self, ids, rev_map=None): 
         self.ids = ids
+        self._rev_map = rev_map or {}
 
-def encode_with_hashed_ids(self, text:str):
-    m   = get_hashed_ids(self)
+    @property
+    def tokens(self):
+        return [self._rev_map.get(i, "[UNK]") for i in self.ids]
+
+def encode_with_hashed_ids(self, text: str):
+    if not hasattr(self, "_id_map") or not hasattr(self, "_rev_map"):
+        _build_maps(self)
+    m = self._id_map
+    rev = self._rev_map
     enc = self.encode(text)
-    return HashedEncoding([m.get(self.id_to_token(i), -1) for i in enc.ids])
+    hashed_ids = [m.get(self.id_to_token(i), -1) for i in enc.ids]
+    return HashedEncoding(hashed_ids, rev)
 
 def decode_with_hashed_ids(self, ids):
     if not hasattr(self, "_rev_map"):
         _build_maps(self)
-    return "".join(self._rev_map.get(i, "[UNK]") for i in ids).replace("Ġ", " ")
+    return "".join(self._rev_map.get(i, "[UNK]") for i in ids).replace("Ġ", " ").replace("Ċ", "\n")
 
 _orig_train = Tokenizer.train_from_iterator
 def _train_and_clear(self, *a, **k):
